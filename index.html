@@ -1348,35 +1348,31 @@
         "What’s your proudest business milestone?",
         "What’s one thing you’d change
  <script>
-  // Open modal when a tool card is clicked
+  // Open modal on card click
   document.querySelectorAll('.tool-card').forEach(card => {
     card.addEventListener('click', function() {
-      const toolId = card.getAttribute('data-tool');
-      const modal = document.getElementById(toolId);
-      if (modal) {
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-      }
+      // Hide all modals first
+      document.querySelectorAll('.tool-modal').forEach(modal => modal.style.display = 'none');
+      // Show the correct modal
+      const tool = card.getAttribute('data-tool');
+      const modal = document.getElementById(tool);
+      if (modal) modal.style.display = 'flex';
     });
   });
 
-  // Close modal when close button is clicked
-  document.querySelectorAll('.tool-modal .close-btn').forEach(btn => {
+  // Close modal on close button click
+  document.querySelectorAll('.close-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const modal = btn.closest('.tool-modal');
-      if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-      }
+      if (modal) modal.style.display = 'none';
     });
   });
 
-  // Optional: close modal when clicking outside the modal content
+  // Also close modal if clicking outside modal content
   document.querySelectorAll('.tool-modal').forEach(modal => {
     modal.addEventListener('click', function(e) {
       if (e.target === modal) {
         modal.style.display = 'none';
-        document.body.style.overflow = '';
       }
     });
   });
