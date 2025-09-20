@@ -1,1275 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HabitFlow — Your Life OS</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    :root {
-      --primary: #4f46e5;
-      --secondary: #10b981;
-      --light: #f9fafb;
-      --dark: #1f2937;
-      --gray: #d1d5db;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --lendhub: #4f46e5;
-      --giggle: #10b981;
-      --refer: #7c3aed;
-      --mvp: #ec4899;
-      --reading: #8b5cf6;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Flow - Your Life OS</title>
+    <style>
+        /* --- GLOBAL STYLES & PLATFORM SHELL --- */
+        :root {
+            --primary: #4f46e5; --secondary: #10b981; --light: #f9fafb; --dark: #1f2937; --gray: #6b7280; --border-color: #e5e7eb;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--light); color: var(--dark); text-align: center; }
+        .habit-flow-app { max-width: 900px; margin: 0 auto; padding: 1rem; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        h1 { color: var(--primary); margin-bottom: 0.5rem; }
+        h2 { font-size: 1.5rem; color: var(--dark); margin-top: 1.5rem; margin-bottom: 1rem; text-align: left; }
+        p { color: var(--gray); line-height: 1.6; text-align: left; }
+        .btn { background-color: var(--primary); color: white; border: none; padding: 1rem 1.5rem; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; width: 100%; }
+        .btn:hover { background-color: #4338ca; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--light);
-      color: var(--dark);
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
+        /* Login Screen */
+        #login-screen { padding-top: 5rem; }
+        #login-screen input { width: 100%; max-width: 400px; padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1.1rem; text-align: center; margin: 2rem 0; }
+        #login-error { color: #ef4444; height: 1.5rem; }
 
-    .app {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1rem;
-    }
+        /* Main Content Shell */
+        #main-header { padding: 1.5rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem; }
+        #back-to-dashboard-btn { background: none; border: none; color: var(--primary); font-size: 1rem; font-weight: 600; cursor: pointer; display: none; }
+        #main-footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); font-size: 0.9rem; color: var(--gray); }
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.5rem 0 1rem;
-      border-bottom: 1px solid var(--gray);
-      margin-bottom: 2rem;
-    }
+        /* Dashboard */
+        #dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
+        .app-card { background: white; padding: 2rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s ease-in-out; }
+        .app-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); border-color: var(--primary); }
+        .app-card .icon { font-size: 2.5rem; }
+        .app-card h3 { margin-top: 1rem; font-size: 1.1rem; }
 
-    h1 {
-      color: var(--primary);
-      font-size: 2rem;
-      margin: 0;
-    }
+        /* --- MINI-APP GENERAL & SCOPED STYLES --- */
+        .mini-app-container .section-card { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; text-align: left; }
+        .mini-app-container .btn-upgrade { background-color: var(--secondary); margin-top: 1.5rem; }
+        .mini-app-container .btn-upgrade:hover { background-color: #059669; }
+        .mini-app-container .input-group { display: flex; flex-direction: column; }
+        .mini-app-container .input-group label { font-weight: 500; margin-bottom: 0.5rem; font-size: 1rem; }
+        .mini-app-container .input-group input, .mini-app-container .input-group select, .mini-app-container .input-group textarea { font-size: 1.1rem; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); width: 100%; font-family: inherit; }
+        .sponsor-section { background-color: #f3f4f6; border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-top: 2.5rem; text-align: left; }
+        .sponsor-section h3 { color: var(--dark); font-size: 1.2rem; }
+        .sponsor-section a { color: var(--primary); font-weight: 600; text-decoration: none; }
+        .special-offer-text { font-weight: 700; margin-top: 1rem; display: block; }
+        .upgrade-pitch p { text-align: center; }
+        .mini-app-container .trial-banner { background-color: #e0e7ff; color: var(--primary); padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.9rem; font-weight: 500; margin: 0.5rem auto 1.5rem; display: inline-block; }
 
-    .trial-banner {
-      background: #e0f2fe;
-      color: #0369a1;
-      border: 1px solid #0ea5e9;
-      padding: 1rem;
-      font-weight: 500;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
-    }
+        /* Breathing App */
+        #app-breathing #breather { width: 250px; height: 250px; border-radius: 50%; background-color: #e0e7ff; margin: 2rem auto; display: flex; justify-content: center; align-items: center; }
+        #app-breathing #breather.breathing { animation: hf-breathe-animation 12s infinite ease-in-out; }
+        @keyframes hf-breathe-animation { 0% { transform: scale(1); } 33% { transform: scale(1.2); } 66% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        
+        /* Journal App */
+        #app-journal .mood-selector { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem; }
+        #app-journal .mood-btn { flex: 1; background-color: #fff; border: 1px solid var(--border-color); padding: 0.6rem; border-radius: 8px; cursor: pointer; }
+        #app-journal .mood-btn.active { background-color: #e0e7ff; color: var(--primary); border-color: var(--primary); }
+        #app-journal #prompt-display { background-color: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 2rem 1.5rem; min-height: 150px; display: flex; justify-content: center; align-items: center; margin-top: 1.5rem; }
+        #app-journal #prompt-text { font-size: 1.2rem; font-style: italic; }
+        #app-journal .log-entry { padding: 0.75rem 0.25rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; }
+        #app-journal .btn-delete { background-color: #ef4444; font-size: 0.8rem; padding: 0.5rem 1rem; width: auto; }
+        
+        /* Subscription Tracker */
+        #app-subs .summary { background-color: #0d47a1; color: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+        #app-subs #total-cost { font-size: 2.5rem; font-weight: 700; }
+        #app-subs .add-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+        #app-subs .sub-item { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        #app-subs #currency-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: none; justify-content: center; align-items: center; }
+        #app-subs .currency-content { background: white; padding: 2rem; border-radius: 12px; max-width: 400px; width: 90%; }
+        #app-subs .btn-delete { background-color: #f3f4f6; color: #ef4444; width: auto; font-size: 1.2rem; padding: 0.3rem 0.6rem; border: 1px solid var(--border-color); }
+        #app-subs .currency-symbol { padding: 0.8rem 0 0.8rem 0.8rem; border: 1px solid var(--border-color); border-right: none; border-radius: 8px 0 0 8px; background-color: #f3f4f6; }
+        #app-subs #sub-amount { border-left: none; border-radius: 0; }
+        
+        /* Chore App */
+        #app-chores .chore-item { display: flex; flex-direction: column; padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        @media (min-width: 600px) { #app-chores .chore-item { flex-direction: row; align-items: center; justify-content: space-between; } }
+        #app-chores .chore-name { font-size: 1.2rem; font-weight: 600; }
+        #app-chores .chore-tag { background-color: #f3f4f6; color: var(--gray); font-size: 0.8rem; padding: 0.2rem 0.6rem; border-radius: 12px; display: inline-block; margin-top: 0.5rem; }
+        #app-chores #reward-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: none; justify-content: center; align-items: center; }
+        #app-chores .reward-content { background: white; padding: 3rem 2rem; border-radius: 12px; }
 
-    /* --- TOOL GRID --- */
-    .tool-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 1rem;
-      margin-bottom: 3rem;
-    }
+        /* Declutter App */
+        #app-declutter .progress-bar-container { background-color: var(--border-color); border-radius: 99px; overflow: hidden; }
+        #app-declutter #progress-bar { height: 12px; background-color: #8b5cf6; transition: width 0.5s; }
+        #app-declutter #challenge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+        #app-declutter .day-card { padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color); }
+        #app-declutter .day-card.completed { background-color: #f3f4f6; opacity: 0.7; }
+        #app-declutter .day-card.locked { background-color: #f3f4f6; cursor: pointer; opacity: 0.5; }
 
-    .tool-card {
-      background: white;
-      border-radius: 16px;
-      padding: 1.5rem;
-      text-align: center;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-      cursor: pointer;
-      transition: all 0.3s ease;
-      height: 180px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      border: 1px solid #eee;
-    }
-
-    .tool-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-      border-color: var(--primary);
-    }
-
-    .tool-card h3 {
-      color: var(--dark);
-      font-size: 1rem;
-      font-weight: 600;
-      margin: 0.5rem 0 0;
-      line-height: 1.4;
-    }
-
-    .tool-card div { /* Changed from .tool-card i to target the div with emoji */
-      font-size: 2rem;
-      margin-bottom: 0.8rem;
-      color: var(--primary);
-    }
-
-    /* --- TOOL MODAL --- */
-    .tool-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-      padding: 1rem;
-      overflow-y: auto;
-    }
-
-    .tool-modal-content {
-      background: white;
-      border-radius: 16px;
-      width: 95%;
-      max-width: 900px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-      position: relative;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.5rem;
-      border-bottom: 1px solid #eee;
-    }
-
-    .modal-header h2 {
-      color: var(--primary);
-      margin: 0;
-      font-size: 1.8rem;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 1.8rem;
-      cursor: pointer;
-      color: #999;
-    }
-
-    .tool-body {
-      padding: 1.5rem;
-    }
-
-    /* --- SPONSOR CARD (Styles retained in case you add them back) --- */
-    .sponsor-card {
-      background: #f8f9ff;
-      border-left: 4px solid var(--lendhub);
-      padding: 1.2rem;
-      margin-top: 1.5rem;
-      border-radius: 0 8px 8px 0;
-    }
-    .sponsor-card.lendhub { border-left-color: var(--lendhub); }
-    .sponsor-card.giggle { background: #f0fdf4; border-left-color: var(--giggle); }
-    .sponsor-card.refer { background: #f5f3ff; border-left-color: var(--refer); }
-    .sponsor-card.mvp { background: #fff0f5; border-left-color: var(--mvp); }
-    .sponsor-card.reading { background: #f5f0ff; border-left-color: var(--reading); }
-
-    .sponsor-card h3 {
-      color: #374151;
-      margin-bottom: 0.5rem;
-      font-size: 1.1rem;
-    }
-    .sponsor-card p {
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-      color: #374151;
-    }
-    .sponsor-card a {
-      color: var(--primary);
-      text-decoration: none;
-    }
-    .sponsor-card input[type="checkbox"] {
-      margin-right: 0.5rem;
-    }
-    .sponsor-card label {
-      font-size: 0.8rem;
-      color: #6b7280;
-      cursor: pointer;
-    }
-
-    .file-upload {
-      margin: 0.8rem 0;
-      padding: 1rem;
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-      text-align: center;
-      background: #fafafa;
-      cursor: pointer;
-    }
-    .file-upload:hover {
-      border-color: #4f46e5;
-    }
-
-    .thank-you-modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-    .thank-you-content {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 500px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
-    .thank-you-content h3 {
-      color: var(--success);
-      margin-bottom: 1rem;
-    }
-    .thank-you-content p {
-      margin-bottom: 1.5rem;
-      color: #555;
-    }
-
-    .btn-pdf {
-      background: #6366f1;
-      color: white;
-      border: none;
-      padding: 0.6rem 1rem;
-      border-radius: 6px;
-      margin-top: 0.8rem;
-      font-size: 0.9rem;
-      cursor: pointer;
-    }
-    .btn-pdf:hover {
-      background: #4f46e5;
-    }
-
-    .footer {
-      text-align: center;
-      color: #6b7280; /* Darker gray for better readability */
-      font-size: 0.9rem;
-      margin-top: 3rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--gray);
-    }
-
-    .upgrade-banner {
-      background: #e0f2fe;
-      border: 1px solid #0ea5e9;
-      color: #0369a1;
-      padding: 1rem;
-      border-radius: 8px;
-      margin: 1.5rem 0;
-      text-align: center;
-      font-weight: 600;
-    }
-
-    /* --- REIMAGINED TOOLS (Styles are fine) --- */
-    .gratitude-journal {
-      padding: 1.5rem;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
-      margin-top: 1.5rem;
-    }
-    .journal-header h3 {
-      color: #374151;
-      margin-bottom: 0.25rem;
-      font-size: 1.4rem;
-    }
-    .journal-header p {
-      color: #6b7280;
-      font-size: 0.9rem;
-      margin-bottom: 1.5rem;
-    }
-    .prompt-card {
-      margin-bottom: 1.5rem;
-    }
-    .prompt-card strong {
-      color: #4f46e5;
-      display: block;
-      margin-bottom: 0.5rem;
-      font-size: 1.1rem;
-    }
-    .prompt-card textarea {
-      width: 100%;
-      padding: 1rem;
-      border: none;
-      border-radius: 12px;
-      background: #fdfdfd;
-      font-family: 'Georgia', serif;
-      font-size: 1.1rem;
-      line-height: 1.6;
-      resize: vertical;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    }
-    .save-btn {
-      background: #4f46e5;
-      color: white;
-      border: none;
-      padding: 0.8rem 1.5rem;
-      border-radius: 12px;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 1.5rem;
-      transition: all 0.3s;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .save-btn:hover {
-      background: #4338ca;
-      transform: translateY(-2px);
-    }
-    .journal-footer {
-      margin-top: 1.5rem;
-      font-size: 0.8rem;
-      color: #9ca3af;
-      text-align: center;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.02); }
-      100% { transform: scale(1); }
-    }
-
-    .water-drop {
-      width: 32px;
-      height: 32px;
-      background: #e0e7ff;
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    .water-drop:hover {
-      transform: scale(1.05);
-    }
-    .water-drop.active {
-      background: #3b82f6;
-      box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
-    }
-    .wellness-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.8rem;
-      margin-top: 1.5rem;
-    }
-    .wellness-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.7rem;
-      background: #f8fafc;
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
-      font-size: 0.9rem;
-      cursor: pointer;
-    }
-    .wellness-item input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-    }
-    .wellness-item label {
-      margin: 0;
-      color: #374151;
-    }
-
-    .planner-card {
-      background: #f8f9ff;
-      border-radius: 12px;
-      padding: 1.2rem;
-      margin-bottom: 1.5rem;
-      border-left: 4px solid #fbbf24;
-    }
-    .planner-card:nth-child(2) { border-left-color: #60a5fa; }
-    .planner-card:nth-child(3) { border-left-color: #8b5cf6; }
-    .planner-card textarea {
-      width: 100%;
-      padding: 1rem;
-      border: none;
-      background: white;
-      border-radius: 8px;
-      font-family: 'Georgia', serif;
-      margin-top: 0.5rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    }
-
-    .badge {
-      background: #fef3c7;
-      padding: 1rem;
-      border-radius: 12px;
-      text-align: center;
-      border: 1px solid #fde047;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      transition: all 0.3s;
-    }
-    .badge:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
-    }
-    .badge label {
-      display: block;
-      padding: 0.5rem;
-      background: white;
-      border-radius: 8px;
-      cursor: pointer;
-      border: 1px dashed #fde047;
-      font-size: 0.9rem;
-    }
-    .badge span {
-      font-size: 1.2rem;
-    }
-
-    .progress-trail {
-      transition: width 0.5s ease;
-    }
-    .hiker {
-      transition: right 0.5s ease;
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      background: #3b82f6;
-      border-radius: 50%;
-      border: 2px solid #3b82f6;
-      box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
-      top: -10px;
-    }
-
-    .book-card {
-      background: #f8f9ff;
-      border-radius: 12px;
-      padding: 1rem;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .book-card div {
-      width: 80px;
-      height: 120px;
-      background: #e0e7ff;
-      border-radius: 8px;
-      margin: 0 auto 0.8rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #6b7280;
-      font-size: 1.5rem;
-    }
-    .book-card strong {
-      margin-bottom: 0.3rem;
-    }
-    .book-card p {
-      color: #6b7280;
-      margin: 0.3rem 0;
-    }
-    .book-card p:first-of-type { color: #10b981; }
-
-    .petal {
-      background: #fef3c7;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      color: #6b7280;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      position: relative;
-      transition: all 0.3s;
-    }
-    .petal:hover {
-      transform: translateY(-3px);
-    }
-    .petal label {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.8);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .petal input:checked + label {
-      opacity: 1;
-      background: #10b981;
-      color: white;
-    }
-
-    .checklist-category {
-      background: #f0fdf4;
-      border-radius: 12px;
-      padding: 1rem;
-      border-left: 4px solid #10b981;
-    }
-    .checklist-category h4 {
-      color: #10b981;
-      margin-bottom: 0.5rem;
-    }
-    .checklist-category label {
-      display: block;
-      margin-bottom: 0.3rem;
-      font-size: 0.9rem;
-      color: #374151;
-    }
-
-    .whisper-card {
-      background: #f8f9ff;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      border-left: 4px solid #8b5cf6;
-    }
-    .whisper-card p {
-      font-size: 1.1rem;
-      color: #374151;
-      margin-bottom: 0.5rem;
-    }
-    .whisper-card em {
-      color: #6b7280;
-      font-style: italic;
-    }
-    .whisper-card button {
-      background: #e0e7ff;
-      border: none;
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      margin-bottom: 1rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 900px) { /* Adjusted breakpoint */
-      .tool-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 600px) {
-      .tool-grid { grid-template-columns: repeat(2, 1fr); }
-      .tool-card { padding: 1rem; height: 140px; }
-      .tool-card h3 { font-size: 0.9rem; }
-      .tool-modal-content { width: 98%; }
-      .modal-header h2 { font-size: 1.5rem; }
-      .gratitude-journal { padding: 1rem; }
-      .prompt-card textarea { font-size: 1rem; }
-      .petal { width: 40px; height: 40px; }
-      .petal span { font-size: 0.7rem; }
-      .badge { padding: 0.8rem; }
-      .badge span { font-size: 1rem; }
-      .wellness-grid { grid-template-columns: 1fr; } /* Stack on mobile */
-      .checklist-category { grid-column: span 2; } /* Full width on mobile */
-    }
-  </style>
+        /* Health App */
+        #app-health .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        #app-health .input-group input.input-warning { border: 2px solid #ef4444; }
+        #app-health .warning-text { color: #ef4444; font-size: 0.8rem; height: 1.2rem; text-align: left; }
+        #app-health .med-chart { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+        #app-health .med-chart th, #app-health .med-chart td { padding: 0.8rem; border: 1px solid var(--border-color); text-align: center; }
+        #app-health .med-checklist label { display: flex; align-items: center; font-size: 1.1rem; margin-bottom: 0.5rem; }
+        #app-health .med-checklist input[type="checkbox"] { width: 20px; height: 20px; margin-right: 1rem; }
+        
+        /* Gratitude App */
+        #app-gratitude .prompt-group textarea { width: 100%; margin-top: 0.5rem; padding: 1rem; font-size: 1.1rem; border-radius: 8px; border: 1px solid var(--border-color); min-height: 80px; }
+        #app-gratitude .history-item blockquote { border-left: 3px solid #10b981; padding-left: 1rem; margin: 0.5rem 0; font-style: italic; }
+    </style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>HabitFlow</h1>
-    </header>
-    <div class="trial-banner">
-        Welcome to HabitFlow! You have 7 days to use any tool and save your progress. We’ll reply personally to any questions.
-    </div>
-
-    <div class="tool-grid">
-      <div class="tool-card" data-tool="gratitude">
-        <div>🙏</div>
-        <h3>5-Minute Daily Gratitude Journal</h3>
-      </div>
-
-      <div class="tool-card" data-tool="hydration">
-        <div>💧</div>
-        <h3>Weekly Hydration & Wellness Tracker</h3>
-      </div>
-
-      <div class="tool-card" data-tool="planner">
-        <div>⏰</div>
-        <h3>Daily Time-Blocking Planner</h3>
-      </div>
-
-      <div class="tool-card" data-tool="chores">
-        <div>👨‍👩‍👧‍👦</div>
-        <h3>Kids’ Chore & Reward Chart</h3>
-      </div>
-
-      <div class="tool-card" data-tool="debt">
-        <div>💰</div>
-        <h3>Debt Snowball Payoff Tracker</h3>
-      </div>
-
-      <div class="tool-card" data-tool="reading">
-        <div>📖</div>
-        <h3>Reading List & Book Review Log</h3>
-      </div>
-
-      <div class="tool-card" data-tool="invoice">
-        <div>📄</div>
-        <h3>Simple & Clean Invoice Template</h3>
-      </div>
-
-      <div class="tool-card" data-tool="declutter">
-        <div>🧹</div>
-        <h3>30-Day Home Decluttering Challenge</h3>
-      </div>
-
-      <div class="tool-card" data-tool="travel">
-        <div>✈️</div>
-        <h3>Stress-Free Travel Packing Checklist</h3>
-      </div>
-
-      <div class="tool-card" data-tool="social">
-        <div>📱</div>
-        <h3>Social Media Prompts for Small Biz</h3>
-      </div>
-    </div>
-
-    <div class="tool-modal" id="gratitude">
-      <div class="tool-modal-content">
-        <div class="modal-header">
-          <h2>✨ 5-Minute Daily Gratitude Journal</h2>
-          <button class="close-btn">&times;</button>
+    <div class="habit-flow-app">
+        <div id="login-screen" class="screen active">
+            <h1>Welcome to Habit Flow</h1>
+            <p style="text-align:center;">Your personal OS for a better life. Enter the password to begin.</p>
+            <input type="password" id="password-input" placeholder="••••••••">
+            <p id="login-error"></p>
+            <button id="login-btn" class="btn">Start 7-Day Trial</button>
         </div>
-        <div class="tool-body">
-          <div class="gratitude-journal">
-            <div class="journal-header">
-              <h3>✨ 5-Minute Daily Gratitude Journal</h3>
-              <p>Take a breath. Write one thing that made today gentle.</p>
-            </div>
 
-            <div class="prompt-card">
-              <strong>Today I am grateful for...</strong>
-              <textarea rows="4" placeholder="e.g., The way the sun warmed my hands while making tea…"></textarea>
-            </div>
-
-            <div class="prompt-card">
-              <strong>One amazing thing that happened today...</strong>
-              <textarea rows="3" placeholder="e.g., My dog curled up beside me without being asked…"></textarea>
-            </div>
-
-            <div class="prompt-card">
-              <strong>I am looking forward to...</strong>
-              <textarea rows="3" placeholder="e.g., Tomorrow’s walk in the park…"></textarea>
-            </div>
-
-            <button class="save-btn">Save This Moment</button>
-
-            <div class="journal-footer">
-              Your words are yours alone. They’re saved only on this device — until you choose to share them.
-            </div>
-          </div>
+        <div id="main-content" style="display: none;">
+            <header id="main-header">
+                <button id="back-to-dashboard-btn">&larr; Back to Dashboard</button>
+                <h1 id="app-title">Dashboard</h1>
+            </header>
+            <main>
+                <div id="dashboard-screen" class="screen">
+                    <div id="dashboard-grid"></div>
+                </div>
+                <div id="app-gratitude" class="screen mini-app-container"></div>
+                <div id="app-journal" class="screen mini-app-container"></div>
+                <div id="app-breathing" class="screen mini-app-container"></div>
+                <div id="app-subs" class="screen mini-app-container"></div>
+                <div id="app-chores" class="screen mini-app-container"></div>
+                <div id="app-declutter" class="screen mini-app-container"></div>
+                <div id="app-health" class="screen mini-app-container"></div>
+            </main>
+            <footer id="main-footer">
+                <p style="text-align:center;">Every upgrade results in $1 being forwarded to TCF & Edhi.</p>
+                <p style="text-align:center; margin-top: 0.5rem;">2025 - Habit Flow - A Self-Help Initiative by Farhan Nadeem.</p>
+            </footer>
         </div>
-      </div>
-    </div>
-
-    <div class="tool-modal" id="hydration">
-      <div class="tool-modal-content">
-        <div class="modal-header">
-          <h2>💧 The Flow — Weekly Hydration & Wellness Tracker</h2>
-          <button class="close-btn">&times;</button>
-        </div>
-        <div class="tool-body">
-          <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 1rem;">
-            Water isn’t just a habit. It’s your quiet act of self-care.
-          </p>
-
-          <div style="display: flex; justify-content: center; margin: 1.5rem 0; gap: 0.3rem;">
-            <div class="water-drop" data-index="1"></div>
-            <div class="water-drop" data-index="2"></div>
-            <div class="water-drop" data-index="3"></div>
-            <div class="water-drop" data-index="4"></div>
-            <div class="water-drop" data-index="5"></div>
-            <div class="water-drop" data-index="6"></div>
-            <div class="water-drop" data-index="7"></div>
-            <div class="water-drop" data-index="8"></div>
-          </div>
-
-          <p style="text-align: center; color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
-            Click to fill your cup. Each drop is a moment chosen for you.
-          </p>
-
-          <div class="wellness-grid">
-            <div class="wellness-item">
-              <input type="checkbox" id="vitamins" />
-              <label for="vitamins">Took vitamins</label>
-            </div>
-            <div class="wellness-item">
-              <input type="checkbox" id="stretch" />
-              <label for="stretch">Stretched 10 mins</label>
-            </div>
-            <div class="wellness-item">
-              <input type="checkbox" id="sunlight" />
-              <label for="sunlight">Got 15 mins sunlight</label>
-            </div>
-          </div>
-
-          <button class="save-btn" style="margin-top: 2rem;">Save My Flow</button>
-
-          <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af;">
-            Your body remembers every drop you give it.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-modal" id="planner">
-      <div class="tool-modal-content">
-        <div class="modal-header">
-          <h2>🌅 The Quiet Hour — Daily Time-Blocking Planner</h2>
-          <button class="close-btn">&times;</button>
-        </div>
-        <div class="tool-body">
-          <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 1rem;">
-            Time isn’t something you manage. It’s something you honor.
-          </p>
-
-          <div class="planner-card">
-            <strong>Top 3 Priorities</strong>
-            <textarea rows="3" placeholder="What 3 things will make today meaningful?" 
-              style="width: 100%; padding: 1rem; border: none; background: white; border-radius: 8px; font-family: 'Georgia', serif; margin-top: 0.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.05);"></textarea>
-          </div>
-
-          <div class="planner-card">
-            <strong>Small Wins</strong>
-            <textarea rows="2" placeholder="Quick tasks under 5 minutes — the gentle ones." 
-              style="width: 100%; padding: 1rem; border: none; background: white; border-radius: 8px; font-family: 'Georgia', serif; margin-top: 0.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.05);"></textarea>
-          </div>
-
-          <div class="planner-card">
-            <strong>End-of-Day Reflection</strong>
-            <textarea rows="3" placeholder="What did you learn? What would you carry forward?" 
-              style="width: 100%; padding: 1rem; border: none; background: white; border-radius: 8px; font-family: 'Georgia', serif; margin-top: 0.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.05);"></textarea>
-          </div>
-
-          <button class="save-btn" style="margin-top: 2rem;">Honor This Day</button>
-
-          <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af;">
-            You don’t need more hours. You need more presence.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-modal" id="chores">
-      <div class="tool-modal-content">
-        <div class="modal-header">
-          <h2>🌟 The Little Hero — Kids’ Chore & Reward Chart</h2>
-          <button class="close-btn">&times;</button>
-        </div>
-        <div class="tool-body">
-          <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 1rem;">
-            Every small task is a step toward courage.
-          </p>
-
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin-bottom: 1.5rem;">
-            <div class="badge" style="background: #fef3c7; padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid #fde047; cursor: pointer;">
-              <span style="font-size: 1.2rem;">🛏️</span>
-              <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Make Bed</p>
-              <input type="checkbox" id="chore1" style="display: none;" />
-              <label for="chore1" style="display: block; padding: 0.5rem; background: white; border-radius: 8px; cursor: pointer; border: 1px dashed #fde047;">Click to mark</label>
-            </div>
-
-            <div class="badge" style="background: #fef3c7; padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid #fde047; cursor: pointer;">
-              <span style="font-size: 1.2rem;">🐶</span>
-              <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Feed Pet</p>
-              <input type="checkbox" id="chore2" style="display: none;" />
-              <label for="chore2" style="display: block; padding: 0.5rem; background: white; border-radius: 8px; cursor: pointer; border: 1px dashed #fde047;">Click to mark</label>
-            </div>
-
-            <div class="badge" style="background: #fef3c7; padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid #fde047; cursor: pointer;">
-              <span style="font-size: 1.2rem;">🧸</span>
-              <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Tidy Toys</p>
-              <input type="checkbox" id="chore3" style="display: none;" />
-              <label for="chore3" style="display: block; padding: 0.5rem; background: white; border-radius: 8px; cursor: pointer; border: 1px dashed #fde047;">Click to mark</label>
-            </div>
-
-            <div class="badge" style="background: #fef3c7; padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid #fde047; cursor: pointer;">
-              <span style="font-size: 1.2rem;">🍽️</span>
-              <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Set Table</p>
-              <input type="checkbox" id="chore4" style="display: none;" />
-              <label for="chore4" style="display: block; padding: 0.5rem; background: white; border-radius: 8px; cursor: pointer; border: 1px dashed #fde047;">Click to mark</label>
-            </div>
-
-            <div class="badge" style="background: #fef3c7; padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid #fde047; cursor: pointer;">
-              <span style="font-size: 1.2rem;">🗑️</span>
-              <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Take Out Trash</p>
-              <input type="checkbox" id="chore5" style="display: none;" />
-              <label for="chore5" style="display: block; padding: 0.5rem; background: white; border-radius: 8px; cursor: pointer; border: 1px dashed #fde047;">Click to mark</label>
-            </div>
-
-            <div class="badge" style="background: #fef3c7; padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid #fde047; cursor: pointer;">
-              <span style="font-size: 1.2rem;">🧽</span>
-              <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Help With Dishes</p>
-              <input type="checkbox" id="chore6" style="display: none;" />
-              <label for="chore6" style="display: block; padding: 0.5rem; background: white; border-radius: 8px; cursor: pointer; border: 1px dashed #fde047;">Click to mark</label>
-            </div>
-
-            <div class="badge" style="background: #fef3c7; padding: 1rem; border-radius: 12px; text-align: center; border: 1px solid #fde047; cursor: pointer;">
-              <span style="font-size: 1.2rem;">🦷</span>
-              <p style="margin: 0.5rem 0 0; font-size: 0.9rem;">Brush Teeth</p>
-              <input type="checkbox" id="chore7" style="display: none;" />
-              <label for="chore7" style="display: block; padding: 0.5rem; background: white; border-radius: 8px; cursor: pointer; border: 1px dashed #fde047;">Click to mark</label>
-            </div>
-          </div>
-
-          <div style="margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border-radius: 12px; border-left: 4px solid #10b981;">
-            <strong>Weekly Reward Earned:</strong>
-            <select style="width: 100%; padding: 0.7rem; border: 1px solid #d1d5db; border-radius: 8px; margin-top: 0.5rem;">
-              <option>🎮 30 mins video games</option>
-              <option>🍦 Ice cream sundae</option>
-              <option>📚 Extra story time</option>
-              <option>🪁 Park outing</option>
-            </select>
-          </div>
-
-          <button class="save-btn" style="margin-top: 2rem;">Celebrate Their Growth</button>
-
-          <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af;">
-            They aren’t doing chores. They’re becoming capable.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-modal" id="debt">
-      <div class="tool-modal-content">
-        <div class="modal-header">
-          <h2>⛰️ The Mountain Path — Debt Snowball Payoff Tracker</h2>
-          <button class="close-btn">&times;</button>
-        </div>
-        <div class="tool-body">
-          <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 1rem;">
-            You’re not paying off debt. You’re climbing out of fear.
-          </p>
-
-          <div style="margin-bottom: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-              <strong>Credit Card A</strong>
-              <span style="color: #10b981;">Paid Off ✅</span>
-            </div>
-            <div style="height: 12px; background: #e0e7ff; border-radius: 6px; overflow: hidden; position: relative;">
-              <div style="width: 100%; height: 100%; background: linear-gradient(90deg, #10b981, #059669); border-radius: 6px;"></div>
-              <div style="position: absolute; right: 0; top: -10px; width: 16px; height: 16px; background: #10b981; border-radius: 50%; border: 2px solid #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);"></div>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-              <strong>Medical Bill</strong>
-              <span>$360 left</span>
-            </div>
-            <div style="height: 12px; background: #e0e7ff; border-radius: 6px; overflow: hidden; position: relative;">
-              <div class="progress-trail" style="width: 70%; height: 100%; background: linear-gradient(90deg, #3b82f6, #2563eb); border-radius: 6px;"></div>
-              <div class="hiker" style="position: absolute; right: calc(30% - 8px); top: -10px; width: 16px; height: 16px; background: #3b82f6; border-radius: 50%; border: 2px solid #3b82f6; box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);"></div>
-            </div>
-            <div style="margin-top: 0.5rem;">
-              <input type="number" placeholder="Amount paid this month" style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 8px;">
-            </div>
-          </div>
-
-          <div style="margin-bottom: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-              <strong>Student Loan</strong>
-              <span>$8,000 left</span>
-            </div>
-            <div style="height: 12px; background: #e0e7ff; border-radius: 6px; overflow: hidden; position: relative;">
-              <div class="progress-trail" style="width: 10%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #7c3aed); border-radius: 6px;"></div>
-              <div class="hiker" style="position: absolute; right: calc(90% - 8px); top: -10px; width: 16px; height: 16px; background: #8b5cf6; border-radius: 50%; border: 2px solid #8b5cf6; box-shadow: 0 0 6px rgba(139, 92, 246, 0.5);"></div>
-            </div>
-            <div style="margin-top: 0.5rem;">
-              <input type="number" placeholder="Amount paid this month" style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 8px;">
-            </div>
-          </div>
-
-          <button class="save-btn" style="margin-top: 2rem;">Take Another Step</button>
-
-          <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af;">
-            You’re not behind. You’re becoming free.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-modal" id="reading">
-      <div class="tool-modal-content">
-        <div class="modal-header">
-          <h2>📚 The Bookshelf of Souls — Reading List & Book Review Log</h2>
-          <button class="close-btn">&times;</button>
-        </div>
-        <div class="tool-body">
-          <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 1rem;">
-            Books don’t change you. You change through them.
-          </p>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1.2rem; margin-bottom: 2rem;">
-            <div class="book-card" style="background: #f8f9ff; border-radius: 12px; padding: 1rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-              <div style="width: 80px; height: 120px; background: #e0e7ff; border-radius: 8px; margin: 0 auto 0.8rem; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 1.5rem;">📖</div>
-              <strong>Atomic Habits</strong>
-              <p style="font-size: 0.8rem; color: #6b7280; margin: 0.3rem 0 0;">James Clear</p>
-              <p style="font-size: 0.8rem; color: #10b981; margin: 0.3rem 0 0;">★★★★★</p>
-            </div>
-
-            <div class="book-card" style="background: #f8f9ff; border-radius: 12px; padding: 1rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-              <div style="width: 80px; height: 120px; background: #e0e7ff; border-radius: 8px; margin: 0 auto 0.8rem; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 1.5rem;">📖</div>
-              <strong>The Midnight Library</strong>
-              <p style="font-size: 0.8rem; color: #6b7280; margin: 0.3rem 0 0;">Matt Haig</p>
-              <p style="font-size: 0.8rem; color: #10b981; margin: 0.3rem 0 0;">★★★★☆</p>
-            </div>
-          </div>
-
-          <button class="save-btn" style="margin-top: 1.5rem;">Add a New Chapter</button>
-
-          <div style="margin-top: 2rem; padding: 1.2rem; background: #f0fdf4; border-radius: 12px; border-left: 4px solid #10b981;">
-            <strong>My Thoughts</strong>
-            <textarea rows="4" placeholder="What did this book leave inside you?" 
-              style="width: 100%; padding: 1rem; border: none; background: white; border-radius: 8px; font-family: 'Georgia', serif; margin-top: 0.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.05);"></textarea>
-          </div>
-
-          <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af;">
-            The books you read are the people you become.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-modal" id="invoice">
-      <div class="tool-modal-content">
-        <div class="modal-header">
-          <h2>📄 The Quiet Receipt — Simple & Clean Invoice Template</h2>
-          <button class="close-btn">&times;</button>
-        </div>
-        <div class="tool-body">
-          <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 1rem;">
-            You’re not sending an invoice. You’re honoring your work.
-          </p>
-
-          <div style="background: #f8f9ff; border-radius: 12px; padding: 1.5rem; border: 1px solid #e0e7ff; margin-bottom: 1.5rem; max-width: 500px; margin-left: auto; margin-right: auto;">
-            <div style="margin-bottom: 1.2rem;">
-              <label style="display: block; margin-bottom: 0.5rem; color: #374151;">Bill To</label>
-              <input type="text" value="Sarah Chen" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: 'Georgia', serif;">
-            </div>
-
-            <div style="margin-bottom: 1.2rem;">
-              <label style="display: block; margin-bottom: 0.5rem; color: #374151;">Service</label>
-              <input type="text" value="Website Design (Home Page)" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: 'Georgia', serif;">
-            </div>
-
-            <div style="display: flex; gap: 1rem; margin-bottom: 1.2rem;">
-              <div style="flex: 1;">
-                <label style="display: block; margin-bottom: 0.5rem; color: #374151;">Rate ($/hr)</label>
-                <input type="number" value="75" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: 'Georgia', serif;">
-              </div>
-              <div style="flex: 1;">
-                <label style="display: block; margin-bottom: 0.5rem; color: #374151;">Hours</label>
-                <input type="number" value="4" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: 'Georgia', serif;">
-              </div>
-            </div>
-
-            <div style="border-top: 1px dashed #ddd; padding-top: 1rem; margin-bottom: 1.2rem; text-align: right;">
-              <p style="font-size: 1.1rem; margin: 0;"><strong>Total: $300</strong></p>
-            </div>
-
-            <div style="margin-bottom: 1.2rem;">
-              <label style="display: block; margin-bottom: 0.5rem; color: #374151;">Payment Instructions</label>
-              <input type="text" value="PayPal / Venmo @sarahc-design" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: 'Georgia', serif;">
-            </div>
-
-            <div style="margin-bottom: 1.2rem;">
-              <label style="display: block; margin-bottom: 0.5rem; color: #374151;">Due Date</label>
-              <input type="date" value="2025-04-10" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; font-family: 'Georgia', serif;">
-            </div>
-          </div>
-
-          <button class="save-btn" style="margin-top: 2rem;">Generate Quiet Invoice</button>
-
-          <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af;">
-            You don’t need to beg for payment. You deserve it.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-modal" id="declutter">
-      <div class="tool-modal-content">
-        <div class="modal-header">
-          <h2>🍂 The Gentle Release — 30-Day Home Decluttering Challenge</h2>
-          <button class="close-btn">&times;</button>
-        </div>
-        <div class="tool-body">
-          <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 1rem;">
-            Clutter isn’t stuff. It’s unshed emotion.
-          </p>
-
-          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-bottom: 1.5rem;">
-            <div class="petal" style="background: #fef3c7; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6b7280; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; transition: all 0.3s;">
-              Day 1<br>Counter
-              <input type="checkbox" id="day1" style="display: none;" />
-              <label for="day1" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.3s;">✓</label>
-            </div>
-
-            <div class="petal" style="background: #fef3c7; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6b7280; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; transition: all 0.3s;">
-              Day 2<br>Mail
-              <input type="checkbox" id="day2" style="display: none;" />
-              <label for="day2" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.3s;">✓</label>
-            </div>
-
-            <div class="petal" style="background: #fef3c7; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6b7280; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; transition: all 0.3s;">
-              Day 3<br>Junk Drawer
-              <input type="checkbox" id="day3" style="display: none;" />
-              <label for="day3" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.3s;">✓</label>
-            </div>
-
-            <div class="petal" style="background: #fef3c7; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6b7280; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; transition: all 0.3s;">
-              Day 4<br>Bathroom Sink
-              <input type="checkbox" id="day4" style="display: none;" />
-              <label for="day4" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.3s;">✓</label>
-            </div>
-
-            <div class="petal" style="background: #fef3c7; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6b7280; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; transition: all 0.3s;">
-              Day 5<br>Pantry
-              <input type="checkbox" id="day5" style="display: none;" />
-              <label for="day5" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.3s;">✓</label>
-            </div>
-
-            <div class="petal" style="background: #fef3c7; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6b7280; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; transition: all 0.3s;">
-              Day 6<br>Bookshelf
-              <input type="checkbox" id="day6" style="display: none;" />
-              <label for="day6" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.3s;">✓</label>
-            </div>
-
-            <div class="petal" style="background: #fef3c7; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6b7280; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; transition: all 0.3s;">
-              Day 7<br>Sock Drawer
-              <input type="checkbox" id="day7" style="display: none;" />
-              <label for="day7" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.3s;">✓</label>
-            </div>
-
-            <div class="petal" style="background: #fef3c7; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6b7280; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; transition: all 0.3s;">
-              Day 8<br>Cabinet
-              <input type="checkbox" id="day8" style="display: none;" />
-              <label for="day8" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.3s;">✓</label>
-            </div>
-
-            <div class="petal" style="background: #fef3c7; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6b7280; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; transition: all 0.3s;">
-              Day 9<br>Medicine
-              <input type="checkbox" id="day9" style="display: none;" />
-              <label for="day9" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.3s;">✓</label>
-            </div>
-
-            <div class="petal" style="background: #fef3c7; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #6b7280; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); position: relative; transition: all 0.3s;">
-              Day 10<br>Donate
-              <input type="checkbox" id="day10" style="display: none;" />
-              <label for="day10" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.3s;">✓</label>
-            </div>
-          </div>
-
-          <div style="text-align: center; margin-top: 1.5rem;">
-            <button class="save-btn">Release One More Thing</button>
-          </div>
-
-          <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af;">
-            What you let go of makes space for what you’re becoming.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-modal" id="travel">
-      <div class="tool-modal-content">
-        <div class="modal-header">
-          <h2>🧭 The Traveler’s Compass — Stress-Free Travel Packing Checklist</h2>
-          <button class="close-btn">&times;</button>
-        </div>
-        <div class="tool-body">
-          <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 1rem;">
-            You don’t pack bags. You pack peace.
-          </p>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-            <div class="checklist-category">
-              <h4>🌿 Clothing</h4>
-              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <label><input type="checkbox"> Underwear</label>
-                <label><input type="checkbox"> Socks</label>
-                <label><input type="checkbox"> Shoes</label>
-                <label><input type="checkbox"> Jacket</label>
-              </div>
-            </div>
-
-            <div class="checklist-category">
-              <h4>🧴 Toiletries</h4>
-              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <label><input type="checkbox"> Toothbrush</label>
-                <label><input type="checkbox"> Shampoo</label>
-                <label><input type="checkbox"> Medications</label>
-              </div>
-            </div>
-
-            <div class="checklist-category">
-              <h4>📜 Documents</h4>
-              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <label><input type="checkbox"> Passport</label>
-                <label><input type="checkbox"> Tickets</label>
-                <label><input type="checkbox"> Insurance</label>
-              </div>
-            </div>
-
-            <div class="checklist-category">
-              <h4>📱 Electronics</h4>
-              <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <label><input type="checkbox"> Phone</label>
-                <label><input type="checkbox"> Charger</label>
-                <label><input type="checkbox"> Adapter</label>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9ff; border-radius: 12px; border-left: 4px solid #4f46e5;">
-            <h4 style="color: #4f46e5; margin-bottom: 0.5rem;">✨ Personal Touch</h4>
-            <textarea rows="3" placeholder="Something that brings you comfort..." 
-              style="width: 100%; padding: 1rem; border: none; background: white; border-radius: 8px; font-family: 'Georgia', serif; margin-top: 0.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.05);"></textarea>
-          </div>
-
-          <button class="save-btn" style="margin-top: 2rem;">Pack with Intention</button>
-
-          <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af;">
-            The best souvenirs aren’t bought. They’re carried within.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-modal" id="social">
-      <div class="tool-modal-content">
-        <div class="modal-header">
-          <h2>💬 The Whisper Network — 30 Days of Social Media Prompts for Small Biz</h2>
-          <button class="close-btn">&times;</button>
-        </div>
-        <div class="tool-body">
-          <p style="color: #6b7280; margin-bottom: 1.5rem; font-size: 1rem;">
-            Your audience doesn’t want ads. They want connection.
-          </p>
-
-          <div class="whisper-card">
-            <p><strong>Day 1 Prompt:</strong> “What’s one myth about our industry you want us to bust?”</p>
-            <p><em>Example (Bakery): “Myth: Organic ingredients cost too much.” We prove otherwise 👇</em></p>
-            <button onclick="navigator.clipboard.writeText('What’s one myth about our industry you want us to bust?')">📋 Copy Prompt</button>
-          </div>
-
-          <div style="margin-bottom: 1.5rem;">
-            <label style="display: block; margin-bottom: 0.5rem; color: #374151;">Your Post</label>
-            <textarea rows="4" placeholder="Write something real. Something human." 
-              style="width: 100%; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; font-family: 'Georgia', serif; box-shadow: 0 1px 4px rgba(0,0,0,0.05);"></textarea>
-          </div>
-
-          <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-            <button class="save-btn">Post to Feed</button>
-            <button style="background: #f8f9ff; color: #6b7280; border: 1px solid #e0e7ff; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer;">Preview</button>
-          </div>
-
-          <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #9ca3af;">
-            Your voice matters more than your reach.
-          </p>
-        </div>
-      </div>
     </div>
     
-    <div class="thank-you-modal" id="thankYouModal">
-      <div class="thank-you-content">
-        <h3>Thank You! 🙏</h3>
-        <p>Your request has been sent successfully. One of our team members will contact you within 24 hours.</p>
-        <button onclick="document.getElementById('thankYouModal').style.display='none'" style="background: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 6px; cursor: pointer;">Close</button>
-      </div>
-    </div>
+    <script>
+        // MASTER SCRIPT FOR HABIT FLOW PLATFORM
+        document.addEventListener('DOMContentLoaded', () => {
+            const App = {
+                password: 'flow2025',
+                initializedApps: new Set(),
+                
+                miniApps: {
+                    gratitude: { title: 'Gratitude Journal', icon: '🙏', init: initGratitudeApp },
+                    journal: { title: 'AI Journal Prompts', icon: '💡', init: initJournalApp },
+                    breathing: { title: 'Breathing Exercise', icon: '🧘', init: initBreathingApp },
+                    subs: { title: 'Subscription Tracker', icon: '💸', sponsor: { name: 'TheLendHub.com', url: 'https://thelendehub.com'}, init: initSubsApp },
+                    chores: { title: 'Kids\' Chore App', icon: '👨‍👩‍👧‍👦', sponsor: { name: 'Giggle Grades', url: 'https://gigglegrades.com'}, init: initChoresApp },
+                    declutter: { title: 'Declutter Challenge', icon: '🧹', sponsor: { name: 'Refer King HQ', url: 'https://referkinghq.com'}, init: initDeclutterApp },
+                    health: { title: 'Health History Log', icon: '❤️', sponsor: { name: 'Healants.com', url: 'https://www.healants.com'}, init: initHealthApp }
+                },
 
-    <div class="upgrade-banner">
-      💡 Become a Monthly or Annual Subscriber — $1 from every plan goes to fight illiteracy and hunger through trusted NGOs like the Edhi Foundation and TCF in Pakistan.
-      <br><br>
-      <a href="#" style="color: #0369a1; text-decoration: underline;">Upgrade Now →</a>
-    </div>
+                elements: {},
+                
+                init() {
+                    this.elements = {
+                        loginScreen: document.getElementById('login-screen'),
+                        mainContent: document.getElementById('main-content'),
+                        dashboardGrid: document.getElementById('dashboard-grid'),
+                        appTitle: document.getElementById('app-title'),
+                        backBtn: document.getElementById('back-to-dashboard-btn'),
+                        loginBtn: document.getElementById('login-btn'),
+                        passwordInput: document.getElementById('password-input'),
+                        loginError: document.getElementById('login-error')
+                    };
+                    this.injectAllHTML();
+                    this.addEventListeners();
+                },
 
-    <div class="footer">
-      © 2025 HabitFlow — Built for intentional living by Farhan Nadeem. <br>
-      ROK Financial has proudly provided over 1 million meals to families in need through our partnership with Feeding America. We will continue to donate 50 meals for every successful transaction.
-    </div>
-  </div>
+                addEventListeners() {
+                    this.elements.loginBtn.addEventListener('click', () => this.handleLogin());
+                    this.elements.passwordInput.addEventListener('keypress', (e) => e.key === 'Enter' && this.handleLogin());
+                    this.elements.backBtn.addEventListener('click', () => this.showDashboard());
+                    this.elements.dashboardGrid.addEventListener('click', (e) => {
+                        const card = e.target.closest('.app-card');
+                        if (card) this.showMiniApp(card.dataset.appId);
+                    });
+                },
+                
+                showScreen(screenId) {
+                    document.querySelectorAll('#main-content .screen').forEach(s => s.classList.remove('active'));
+                    const screen = document.getElementById(screenId);
+                    if (screen) screen.classList.add('active');
+                },
+                
+                handleLogin() {
+                    if (this.elements.passwordInput.value === this.password) {
+                        this.elements.loginScreen.style.display = 'none';
+                        this.elements.mainContent.style.display = 'block';
+                        this.renderDashboard();
+                        this.showDashboard();
+                    } else {
+                        this.elements.loginError.textContent = 'Incorrect password.';
+                    }
+                },
 
-  <script>
-    // --- WORKING CODE ---
+                renderDashboard() {
+                    this.elements.dashboardGrid.innerHTML = '';
+                    for (const appId in this.miniApps) {
+                        const app = this.miniApps[appId];
+                        const card = document.createElement('div');
+                        card.className = 'app-card';
+                        card.dataset.appId = appId;
+                        card.innerHTML = `<div class="icon">${app.icon}</div><h3>${app.title}</h3>`;
+                        this.elements.dashboardGrid.appendChild(card);
+                    }
+                },
 
-    // Open tool modal
-    document.querySelectorAll('.tool-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const toolId = card.getAttribute('data-tool');
-        const modal = document.getElementById(toolId);
-        if (modal) {
-          modal.style.display = 'flex';
-        }
-      });
-    });
+                showDashboard() {
+                    this.elements.appTitle.textContent = 'Dashboard';
+                    this.elements.backBtn.style.display = 'none';
+                    this.showScreen('dashboard-screen');
+                },
 
-    // Close modal with the 'X' button
-    document.querySelectorAll('.close-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        btn.closest('.tool-modal').style.display = 'none';
-      });
-    });
+                showMiniApp(appId) {
+                    const app = this.miniApps[appId];
+                    if (app) {
+                        this.elements.appTitle.textContent = app.title;
+                        this.elements.backBtn.style.display = 'block';
+                        this.showScreen(`app-${appId}`);
+                        if (!this.initializedApps.has(appId)) {
+                            app.init();
+                            this.initializedApps.add(appId);
+                        }
+                    }
+                },
+                
+                injectAllHTML() {
+                    const inject = (id, html) => document.getElementById(id).innerHTML = html;
+                    inject('app-gratitude', `
+                        <div class="section-card"><h2>New Entry</h2><div class="prompt-group"><label for="grateful-input">Today, I am grateful for...</label><textarea id="grateful-input" placeholder="A small detail or a big event..."></textarea></div><div class="prompt-group"><label for="amazing-input">One amazing thing that happened today was...</label><textarea id="amazing-input" placeholder="Something that made you smile..."></textarea></div><div class="prompt-group"><label for="forward-input">I am looking forward to...</label><textarea id="forward-input" placeholder="Something exciting on the horizon..."></textarea></div><button id="save-entry-btn-gratitude" class="btn">Save Today's Entry</button></div>
+                        <div class="section-card"><h2>Your Journal</h2><div id="history-log-gratitude"></div></div>
+                        <div class="upgrade-pitch"><p>Upgrade to keep your journal history forever.</p><button class="btn btn-upgrade" onclick="alert('Upgrade feature coming soon!')">Upgrade for $5/mo</button></div>
+                    `);
+                    inject('app-journal', `
+                        <p style="text-align:center;">Select a mood, then generate a unique prompt.</p><div class="mood-selector"><button class="mood-btn active" data-mood="reflective">Reflective</button><button class="mood-btn" data-mood="motivated">Motivated</button><button class="mood-btn" data-mood="anxious">Anxious</button></div><button id="generate-prompt-btn-journal" class="btn">✨ Give Me a Prompt</button><div id="prompt-display"><p id="prompt-text">Your personal prompt will appear here...</p></div>
+                        <div class="section-card" style="margin-top: 2rem;"><div style="display:flex; justify-content: space-between; align-items: center;"><h2>Your Prompt History</h2><button id="delete-btn-journal" class="btn btn-delete">Remove Selected</button></div><div id="history-log-journal"></div></div>
+                        <div class="upgrade-pitch"><p>Upgrade for unlimited prompts and history.</p><button class="btn btn-upgrade" onclick="alert('Upgrade feature coming soon!')">Upgrade for $5/mo</button></div>
+                    `);
+                    inject('app-breathing', `
+                        <div class="section-card"><h2>Breathing Exercise</h2><div id="breather"><p id="breather-text">Start</p></div><button id="start-btn-breathing" class="btn">Begin Exercise</button><div class="upgrade-pitch" style="margin-top:2rem;"><p style="text-align:center;">Upgrade for more breathing patterns and guided sessions.</p><button class="btn btn-upgrade" onclick="alert('Upgrade feature coming soon!')">Upgrade for $5/mo</button></div></div>
+                    `);
+                    inject('app-subs', `
+                        <div class="trial-banner" id="trial-banner-subs">Day 1 of 7</div><div class="summary"><p>Your Estimated Monthly Total</p><div id="total-cost">$0.00</div></div><div class="section-card"><h2>Add a New Bill</h2><div class="add-form"><span class="currency-symbol" id="form-currency-symbol">$</span><input type="text" id="sub-name" placeholder="e.g., Netflix..."><input type="number" id="sub-amount" placeholder="Amount" min="0" step="0.01"><button id="add-btn-subs" class="btn">+</button></div></div><div class="section-card"><h2>Your Subscriptions</h2><div id="sub-list"></div></div>
+                        <div class="sponsor-section"><h3>Sponsored by TheLendHub.com</h3><p>Providing free business loan underwriting services. <a href="https://thelendehub.com" target="_blank">Visit TheLendHub.com</a>.</p><span class="special-offer-text">Special Offer:</span><p>Share a business prospect with us. If we provide them a loan, you receive 10% of our profit!</p></div>
+                        <div class="upgrade-pitch"><p>Upgrade to receive free, personalized financial solutions.</p><button class="btn btn-upgrade" onclick="alert('Upgrade feature coming soon!')">Upgrade for $5/mo</button></div><div id="currency-modal"><div class="currency-content"><h2>Select Your Currency</h2><select id="currency-select"><option value="$">USD ($)</option><option value="CAD">CAD (C$)</option><option value="AED">AED (د.إ)</option><option value="PKR">PKR (₨)</option><option value="INR">INR (₹)</option><option value="£">GBP (£)</option><option value="€">EUR (€)</option></select><button id="save-currency-btn-subs" class="btn">Save and Continue</button></div></div>
+                    `);
+                    inject('app-chores', `
+                        <div class="section-card"><h2>Add a New Chore</h2><div class="add-chore-form" style="display:grid; grid-template-columns: 1fr; gap:1rem;"><div class="input-group"><label for="chore-name-input">Chore Name</label><input type="text" id="chore-name-input" placeholder="e.g., Make the bed"></div><div class="input-group"><label for="chore-reward-input">Reward</label><input type="text" id="chore-reward-input" placeholder="e.g., 1 Star"></div><div class="input-group"><label for="chore-freq-select">Frequency</label><select id="chore-freq-select"><option value="Daily">Daily</option><option value="Weekly">Weekly</option></select></div><button id="add-chore-btn" class="btn">Add Chore</button></div></div>
+                        <div class="section-card"><h2>Chore List</h2><div id="chore-list-container"></div></div><div class="section-card"><h2>Completion History</h2><div id="history-log-chores"></div></div>
+                        <div class="sponsor-section"><h3>Sponsored by Giggle Grades</h3><p>Making learning fun. Visit <a href="https://gigglegrades.com/" target="_blank">gigglegrades.com</a>.</p><span class="special-offer-text">Special Offer:</span><p>Refer a school or learning center. If they sign up, you receive a special bonus!</p></div>
+                        <div class="upgrade-pitch"><p>Upgrade to save history beyond the trial.</p><button class="btn btn-upgrade" onclick="alert('Upgrade feature coming soon!')">Upgrade for $5/mo</button></div><div id="reward-modal"><div class="reward-content"><h3>🎉 Reward Earned! 🎉</h3><p id="reward-text"></p></div></div>
+                    `);
+                    inject('app-declutter', `
+                        <div class="section-card"><h2>Your Progress</h2><div class="progress-bar-container"><div id="progress-bar"></div></div><p id="progress-text">0/30 Days Complete</p></div><div class="section-card"><h2>The Challenge <span style="font-size: 0.9rem; color: var(--gray);">(First 7 Days Free!)</span></h2><div id="challenge-grid"></div></div>
+                        <div class="sponsor-section"><h3>Sponsored by Refer King HQ</h3><p>Unlock the power of referrals. Visit <a href="https://referkinghq.com/" target="_blank">referkinghq.com</a>.</p><span class="special-offer-text">Special Offer:</span><p>Refer a new client. If they sign up, you get a bonus commission!</p></div>
+                        <div class="upgrade-pitch"><p>Upgrade to unlock the full 30-day challenge!</p><button class="btn btn-upgrade" onclick="alert('Upgrade feature coming soon!')">Upgrade for $5/mo</button></div><div id="reward-modal-declutter" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;"><div class="reward-content" style="background:white; padding:2rem; border-radius:12px;"><h3>✨ Well Done! ✨</h3><p id="reward-text-declutter"></p></div></div>
+                    `);
+                    inject('app-health', `
+                        <div class="section-card"><h2>Step 1: Manage Your Medications</h2><div class="med-form"><input type="text" id="med-name-input-add" class="input-group" placeholder="e.g., Metformin 500mg"><button id="add-med-btn-health" class="btn">Add</button></div><div id="med-list-container"></div></div>
+                        <div class="section-card"><h2>Step 2: Add a New Record</h2><p>Enter your vitals and check which medications you've just taken.</p><div class="input-grid" style="margin-top: 1rem;"><div class="input-group"><label for="sugar-input">Blood Sugar (mg/dL)</label><input type="number" id="sugar-input" placeholder="e.g., 110"><p class="warning-text" id="sugar-warning"></p></div><div class="input-group"><label for="bp-input">Blood Pressure</label><input type="text" id="bp-input" placeholder="e.g., 120/80"><p class="warning-text" id="bp-warning"></p></div><div class="input-group"><label for="hr-input">Heart Rate (BPM)</label><input type="number" id="hr-input" placeholder="e.g., 70"><p class="warning-text" id="hr-warning"></p></div><div class="input-group"><label for="temp-input">Temperature (°F)</label><input type="number" id="temp-input" step="0.1" placeholder="e.g., 98.6"><p class="warning-text" id="temp-warning"></p></div></div><div id="med-checklist-container" class="med-checklist"></div></div>
+                        <button id="save-log-btn-health" class="btn">Add New Record</button><div class="section-card" style="margin-top: 2rem;"><h2>Your Recorded History</h2><div id="history-log-health"></div></div>
+                        <div class="sponsor-section"><h3>Sponsored by Healants.com</h3><p>Your partner in wellness. Visit <a href="https://www.healants.com" target="_blank">www.healants.com</a>.</p><span class="special-offer-text">Special Offer:</span><p>Refer a clinic. If they partner with us, you receive a special bonus!</p><p class="disclaimer" style="font-size:0.8rem; font-style:italic; margin-top:1rem;"><strong>Disclaimer:</strong> This is a recording tool only, not medical advice.</p></div>
+                        <div class="upgrade-pitch"><p>Upgrade to save your history beyond the trial.</p><button class="btn btn-upgrade" onclick="alert('Upgrade feature coming soon!')">Upgrade for $5/mo</button></div>
+                    `);
+                }
+            };
+            
+            // --- The "Brains" for each App (fully implemented) ---
+            function initGratitudeApp(){const e=document.getElementById("app-gratitude"),t=e.querySelector("#grateful-input"),n=e.querySelector("#amazing-input"),o=e.querySelector("#forward-input"),r=e.querySelector("#save-entry-btn-gratitude"),i=e.querySelector("#history-log-gratitude");let a=JSON.parse(localStorage.getItem("habitFlowGratitudeLog")||"[]");function d(){i.innerHTML="",0===a.length?i.innerHTML='<p style="text-align:center; color: var(--gray);">Your saved entries will appear here.</p>':a.slice().reverse().forEach(e=>{const t=document.createElement("div");t.className="history-item";let n=`<div class="history-date">${new Date(e.timestamp).toLocaleDateString(void 0,{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</div>`;e.gratefulFor&&(n+=`<div><label>Grateful for:</label><blockquote>${e.gratefulFor}</blockquote></div>`),e.amazingThing&&(n+=`<div><label>Amazing thing:</label><blockquote>${e.amazingThing}</blockquote></div>`),e.lookingForwardTo&&(n+=`<div><label>Looking forward to:</label><blockquote>${e.lookingForwardTo}</blockquote></div>`),t.innerHTML=n,i.appendChild(t)})}r.addEventListener("click",()=>{const e={timestamp:Date.now(),gratefulFor:t.value.trim(),amazingThing:n.value.trim(),lookingForwardTo:o.value.trim()};e.gratefulFor||e.amazingThing||e.lookingForwardTo?(a.push(e),localStorage.setItem("habitFlowGratitudeLog",JSON.stringify(a)),[t,n,o].forEach(e=>e.value=""),d(),alert("Your entry has been saved!")):alert("Please fill out at least one field.")}),d()}
+            function initJournalApp(){const e=document.getElementById("app-journal"),t=e.querySelectorAll(".mood-btn"),n=e.querySelector("#generate-prompt-btn-journal"),o=e.querySelector("#prompt-text"),r=e.querySelector("#history-log-journal"),i=e.querySelector("#delete-btn-journal");let a="reflective",d=JSON.parse(localStorage.getItem("habitFlowJournalLog_v2")||"[]");const l={reflective:["What's a small moment from today that you're grateful for?","Describe a recent challenge and what it taught you.","If you could give your younger self one piece of advice, what would it be?"],motivated:["What is one small step you can take today towards a big goal?","Describe the feeling you want when you accomplish your next goal.","What skill do you want to develop?"],anxious:["Write down a worry. What part of it can you control?","Describe a place where you feel completely calm.","What is one thing you can do now to be kind to yourself?"]};function s(){r.innerHTML="",0===d.length?(r.innerHTML='<p style="text-align:center;">Your generated prompts will appear here.</p>',i.style.display="none"):(i.style.display="inline-block",d.slice().reverse().forEach(e=>{const t=document.createElement("div");t.className="log-entry",t.innerHTML=`<input type="checkbox" data-id="${e.id}" style="margin-right:1rem;"><div><p style="font-size: 0.8rem; color: var(--gray);">${new Date(e.timestamp).toLocaleString()}</p><p>${e.prompt}</p></div>`,r.appendChild(t)}))}t.forEach(n=>n.addEventListener("click",e=>{a=e.target.dataset.mood,t.forEach(e=>e.classList.remove("active")),e.target.classList.add("active")})),n.addEventListener("click",()=>{const e=l[a],t=e[Math.floor(Math.random()*e.length)];o.textContent=t,d.push({id:Date.now(),timestamp:Date.now(),prompt:t}),localStorage.setItem("habitFlowJournalLog_v2",JSON.stringify(d)),s()}),i.addEventListener("click",()=>{const t=Array.from(e.querySelectorAll('input:checked')).map(e=>parseInt(e.dataset.id));0!==t.length?(d=d.filter(e=>!t.includes(e.id)),localStorage.setItem("habitFlowJournalLog_v2",JSON.stringify(d)),s()):alert("Please select prompts to delete.")}),s()}
+            function initBreathingApp(){const e=document.getElementById("app-breathing"),t=e.querySelector("#start-btn-breathing"),n=e.querySelector("#breather"),o=e.querySelector("#breather-text");let r=!1,i;t.addEventListener("click",()=>{r=!r,r?(t.textContent="Stop Exercise",n.classList.add("breathing"),function e(t){o.textContent=t}("Breathe In..."),setTimeout(()=>o.textContent="Hold",4e3),setTimeout(()=>o.textContent="Breathe Out...",8e3),i=setInterval(()=>{o.textContent="Breathe In...",setTimeout(()=>o.textContent="Hold",4e3),setTimeout(()=>o.textContent="Breathe Out...",8e3)},12e3)):(t.textContent="Begin Exercise",n.classList.remove("breathing"),o.textContent="Start",clearInterval(i))})}
+            function initSubsApp(){const e=document.getElementById("app-subs"),t=e.querySelector("#add-btn-subs"),n=e.querySelector("#total-cost"),o=e.querySelector("#sub-list"),r=e.querySelector("#currency-modal"),i=e.querySelector("#save-currency-btn-subs"),a=e.querySelector("#form-currency-symbol");let d=[],l="$";function s(){let e=d.reduce((e,t)=>e+t.amount,0);n.textContent=`${l}${e.toFixed(2)}`,a.textContent=l,o.innerHTML="",d.forEach(e=>{o.innerHTML+=`<div class="sub-item"><span>${e.name}</span><div><span>${l}${e.amount.toFixed(2)}</span> <button class="btn-delete" data-id="${e.id}">&times;</button></div></div>`})}localStorage.getItem("habitFlowSubsCurrency_v1")?(l=localStorage.getItem("habitFlowSubsCurrency_v1"),d=JSON.parse(localStorage.getItem("habitFlowSubsLog_v1")||"[]"),s()):r.style.display="flex",i.addEventListener("click",()=>{l=e.querySelector("#currency-select").value,localStorage.setItem("habitFlowSubsCurrency_v1",l),r.style.display="none",s()}),t.addEventListener("click",()=>{const t=e.querySelector("#sub-name"),n=e.querySelector("#sub-amount"),r=t.value.trim(),i=parseFloat(n.value);r&&i>0?(d.push({id:Date.now(),name:r,amount:i}),localStorage.setItem("habitFlowSubsLog_v1",JSON.stringify(d)),s(),t.value="",n.value=""):alert("Please enter a valid name and amount.")}),o.addEventListener("click",e=>{e.target.classList.contains("btn-delete")&&(d=d.filter(t=>t.id!==parseInt(e.target.dataset.id)),localStorage.setItem("habitFlowSubsLog_v1",JSON.stringify(d)),s())})}
+            function initChoresApp(){const e=document.getElementById("app-chores"),t=e.querySelector("#add-chore-btn"),n=e.querySelector("#chore-list-container"),o=e.querySelector("#history-log-chores"),r=e.querySelector("#reward-modal"),i=e.querySelector("#reward-text");let a=JSON.parse(localStorage.getItem("habitFlowChoreList")||"[]"),d=JSON.parse(localStorage.getItem("habitFlowChoreHistory")||"[]");function l(){n.innerHTML="",0===a.length?n.innerHTML='<p style="text-align:center; color: var(--gray);">Add your first chore!</p>':a.forEach(e=>{const t=document.createElement("div");t.className="chore-item",t.innerHTML=`<div class="chore-details"><div class="chore-name">${e.name}</div><div class="chore-reward">Reward: ${e.reward}</div><span class="chore-tag">${e.frequency}</span></div><button class="btn btn-small" data-id="${e.id}" style="font-size: 0.9rem; padding: 0.6rem 1.2rem; width: auto;">Mark as Done</button>`,n.appendChild(t)})}function s(){o.innerHTML="",0===d.length?o.innerHTML='<p style="text-align:center; color: var(--gray);">Completed chores will appear here.</p>':d.slice().reverse().forEach(e=>{const t=document.createElement("div");t.className="history-item",t.innerHTML=`<div style="display:flex; justify-content:space-between;"><span><strong>${e.choreName}</strong> completed</span><span>Reward: ${e.reward}</span></div><div style="font-size:0.8rem;color:var(--gray);text-align:left;">${new Date(e.timestamp).toLocaleString()}</div>`,o.appendChild(t)})}t.addEventListener("click",()=>{const t=e.querySelector("#chore-name-input"),n=e.querySelector("#chore-reward-input"),o=e.querySelector("#chore-freq-select");t.value.trim()&&n.value.trim()?(a.push({id:Date.now(),name:t.value.trim(),reward:n.value.trim(),frequency:o.value}),t.value="",n.value="",localStorage.setItem("habitFlowChoreList",JSON.stringify(a)),l()):alert("Please fill in chore name and reward.")}),n.addEventListener("click",e=>{if("BUTTON"===e.target.tagName&&e.target.dataset.id){const t=parseInt(e.target.dataset.id),n=a.find(e=>e.id===t);n&&(d.push({timestamp:Date.now(),choreName:n.name,reward:n.reward}),localStorage.setItem("habitFlowChoreHistory",JSON.stringify(d)),s(),i.textContent=`You earned: ${n.reward}!`,r.style.display="flex")}}),r.addEventListener("click",()=>r.style.display="none"),l(),s()}
+            function initDeclutterApp(){const e=document.getElementById("app-declutter"),t=e.querySelector("#challenge-grid"),n=e.querySelector("#progress-bar"),o=e.querySelector("#progress-text"),r=e.querySelector("#reward-modal-declutter"),i=e.querySelector("#reward-text-declutter"),a=[{day:1,task:"Clear off your kitchen counter.",reward:"Time for a break! Enjoy a warm drink in your clean kitchen."},{day:2,task:"Organize one junk drawer.",reward:"You did it! Play your favorite song."},{day:3,task:"Sort your mail pile.",reward:"Peace of mind. Spend 10 minutes doing nothing at all."},{day:4,task:"Declutter your bedside table.",reward:"Perfect! Light a candle and enjoy the calm."},{day:5,task:"Clean out your wallet or purse.",reward:"Fantastic! Treat yourself to a small coffee or tea."},{day:6,task:"Tidy one shelf on a bookshelf.",reward:"Great work! Read a chapter of a book."},{day:7,task:"Sort through your medicine cabinet.",reward:"Excellent! Take a relaxing 5-minute stretch."},{day:8,task:"Delete old apps from your phone.",reward:"Digitally detoxed! Enjoy your clean home screen."},{day:9,task:"Wipe down your keyboard and screen.",reward:"A clean slate! Browse your favorite websites."},{day:10,task:"Straighten up your entryway.",reward:"Wonderful! Enjoy a welcoming entrance."},{day:11,task:"Declutter the top of your dresser.",reward:"Beautiful! Pick out your favorite outfit for tomorrow."},{day:12,task:"Organize your sock drawer.",reward:"Nicely done! Put on your comfiest pair of socks."},{day:13,task:"Clear one surface in your living room.",reward:"Amazing! Watch a short, fun video."},{day:14,task:"Empty all small trash bins in the house.",reward:"A clean sweep! Enjoy the fresh feeling."},{day:15,task:"Tidy your car's glove compartment.",reward:"Great! Plan a scenic drive for your next trip out."},{day:16,task:"Sort a stack of magazines or papers.",reward:"Productive! Spend 10 minutes learning something new online."},{day:17,task:"Wipe down your kitchen cabinet fronts.",reward:"Sparkling! Admire your handiwork."},{day:18,task:"Organize your cooking spices.",reward:"Delicious! Plan a tasty meal you'd like to cook soon."},{day:19,task:"Clean out the inside of your microwave.",reward:"So satisfying! Heat up a favorite snack or drink."},{day:20,task:"Go through your pens and markers.",reward:"Sharp! Write a short, positive note to yourself."},{day:21,task:"Declutter the area around your TV.",reward:"Picture perfect! Settle in for your favorite show."},{day:22,task:"Straighten the linen closet.",reward:"Neat and tidy! Enjoy the feeling of order."},{day:23,task:"Wipe down bathroom counters and mirror.",reward:"Reflect on a job well done!"},{day:24,task:"Organize your under-sink cabinet.",reward:"Systematic! Appreciate your organized space."},{day:25,task:"Find 5 items to donate.",reward:"Generous! Feel good about giving back."},{day:26,task:"Clear your computer's desktop.",reward:"Digitally detoxed! Enjoy the clean digital workspace."},{day:27,task:"Clean out refrigerator door shelves.",reward:"Cool! Grab a refreshing drink or snack."},{day:28,task:"Match up all your loose socks.",reward:"A perfect pair! Time to relax your feet."},{day:29,task:"Tidy your main workspace.",reward:"Focused! You've created a space for success."},{day:30,task:"Pick one small area and tackle it.",reward:"Challenge Complete! You're a decluttering champion!"}];let d=JSON.parse(localStorage.getItem("habitFlowDeclutterProgress_v2")||"null");function l(){t.innerHTML="";let r=0;d.forEach(i=>{i.completed&&r++;const a=i.day>7,l=document.createElement("div");l.className="day-card",i.completed&&l.classList.add("completed"),a&&l.classList.add("locked"),a&&(l.dataset.locked="true"),l.innerHTML=`<div class="day-header"><span class="day-number">Day ${i.day} ${a?"🔒":""}</span><input type="checkbox" data-day="${i.day}" ${i.completed?"checked disabled":""} ${a?"disabled":""}></div><p class="day-task">${i.task}</p>`,t.appendChild(l)});const i=r/30*100;n.style.width=`${i}%`,o.textContent=`${r}/30 Days Complete`}d&&d.length===a.length||(d=a.map(e=>({...e,completed:!1}))),t.addEventListener("change",e=>{if("checkbox"===e.target.type){const t=parseInt(e.target.dataset.day),n=d.find(e=>e.day===t);n&&!n.completed&&(n.completed=!0,localStorage.setItem("habitFlowDeclutterProgress_v2",JSON.stringify(d)),l(),i.textContent=n.reward,r.style.display="flex")}}),t.addEventListener("click",e=>{e.target.closest(".day-card[data-locked='true']")&&alert("Upgrade to unlock the rest of the challenge!")}),r.addEventListener("click",()=>r.style.display="none"),l()}
+            function initHealthApp(){const e=document.getElementById("app-health"),t={SUGAR:{LOW:70,HIGH:180},BP_SYS:{LOW:90,HIGH:180},BP_DIA:{LOW:60,HIGH:120},HR:{LOW:60,HIGH:100},TEMP:{LOW:95,HIGH:103}},n={sugar:e.querySelector("#sugar-input"),bp:e.querySelector("#bp-input"),hr:e.querySelector("#hr-input"),temp:e.querySelector("#temp-input")},o={sugar:e.querySelector("#sugar-warning"),bp:e.querySelector("#bp-warning"),hr:e.querySelector("#hr-warning"),temp:e.querySelector("#temp-warning")};let r=JSON.parse(localStorage.getItem("habitFlowMedList_v5")||"[]"),i=JSON.parse(localStorage.getItem("habitFlowHealthLog_v5")||"[]");function a(){const t=e.querySelector("#med-list-container");t.innerHTML="",r.forEach(e=>{const n=document.createElement("div");n.className="med-tag",n.innerHTML=`${e} <button data-name="${e}">&times;</button>`,t.appendChild(n)})}function d(){const t=e.querySelector("#med-checklist-container");if(t.innerHTML="",r.length>0){const n=document.createElement("h3");n.textContent="Medications Taken Now:",n.style.fontSize="1.1rem",n.style.marginBottom="0.5rem",t.appendChild(n),r.forEach(e=>{const n=document.createElement("label");n.innerHTML=`<input type="checkbox" data-name="${e}"> ${e}`,t.appendChild(n)})}}function l(){const t=e.querySelector("#history-log-health");t.innerHTML="",0===i.length?t.innerHTML="<p>Your saved entries will appear here.</p>":i.slice().reverse().filter(e=>e&&e.timestamp).forEach(e=>{const n=document.createElement("div");n.className="log-item";let o="<strong>Vitals:</strong> ",r=[];e.vitals.sugar&&r.push(`Sugar: ${e.vitals.sugar} mg/dL`),e.vitals.bp&&r.push(`BP: ${e.vitals.bp}`),e.vitals.hr&&r.push(`HR: ${e.vitals.hr} BPM`),e.vitals.temp&&r.push(`Temp: ${e.vitals.temp}°F`),o+=r.length>0?r.join(", "):"Not recorded.";let a="<strong>Medications Taken:</strong>";a+=e.meds&&e.meds.length>0?"<ul>"+e.meds.map(e=>`<li>${e}</li>`).join("")+"</ul>":" None recorded for this entry.",n.innerHTML=`<div class="log-header">${new Date(e.timestamp).toLocaleString()}</div><div class="log-vitals">${o}</div><div class="log-meds">${a}</div>`,t.appendChild(n)})}function s(){const r=parseFloat(n.sugar.value);r?(r<t.SUGAR.LOW?(n.sugar.classList.add("input-warning"),o.sugar.textContent="Low reading. Consult doctor."):r>t.SUGAR.HIGH?(n.sugar.classList.add("input-warning"),o.sugar.textContent="High reading. Consult doctor."):(n.sugar.classList.remove("input-warning"),o.sugar.textContent="")):(n.sugar.classList.remove("input-warning"),o.sugar.textContent="");const i=n.bp.value.split("/");if(2===i.length){const r=parseFloat(i[0]),a=parseFloat(i[1]);r&&(r<t.BP_SYS.LOW||r>t.BP_SYS.HIGH)||a&&(a<t.BP_DIA.LOW||a>t.BP_DIA.HIGH)?(n.bp.classList.add("input-warning"),o.bp.textContent="Range is unusual. Consult doctor."):(n.bp.classList.remove("input-warning"),o.bp.textContent="")}else n.bp.classList.remove("input-warning"),o.bp.textContent="";const a=parseFloat(n.hr.value);a&&a<t.HR.LOW||a>t.HR.HIGH?(n.hr.classList.add("input-warning"),o.hr.textContent="Resting rate unusual. Consult doctor."):(n.hr.classList.remove("input-warning"),o.hr.textContent="");const d=parseFloat(n.temp.value);d&&d<t.TEMP.LOW||d>t.TEMP.HIGH?(n.temp.classList.add("input-warning"),o.temp.textContent="Reading requires attention. Consult doctor."):(n.temp.classList.remove("input-warning"),o.temp.textContent="")}a(),d(),l(),Object.values(n).forEach(e=>e.addEventListener("input",s)),e.querySelector("#add-med-btn-health").addEventListener("click",()=>{const t=e.querySelector("#med-name-input-add");if(t.value.trim()&&!r.includes(t.value.trim()))r.push(t.value.trim()),t.value="",localStorage.setItem("habitFlowMedList_v5",JSON.stringify(r)),a(),d()}),e.querySelector("#med-list-container").addEventListener("click",e=>{e.target.tagName,"BUTTON"===e.target.tagName&&(r=r.filter(t=>t!==e.target.dataset.name),localStorage.setItem("habitFlowMedList_v5",JSON.stringify(r)),a(),d())}),e.querySelector("#save-log-btn-health").addEventListener("click",()=>{const t=[];e.querySelector("#med-checklist-container").querySelectorAll('input[type="checkbox"]:checked').forEach(e=>t.push(e.dataset.name));const o={sugar:n.sugar.value,bp:n.bp.value,hr:n.hr.value,temp:n.temp.value};if(Object.values(o).every(e=>!e)&&0===t.length)return void alert("Please enter at least one vital sign or check a medication to save a record.");const r={timestamp:(new Date).getTime(),vitals:o,meds:t};i.push(r),localStorage.setItem("habitFlowHealthLog_v5",JSON.stringify(i)),Object.values(n).forEach(e=>e.value=""),e.querySelector("#med-checklist-container").querySelectorAll("input:checked").forEach(e=>e.checked=!1),s(),l(),alert("New record has been added to your history!")})}
 
-    // Close modal on click outside of the content
-    window.addEventListener('click', (e) => {
-      document.querySelectorAll('.tool-modal').forEach(modal => {
-        if (e.target === modal) {
-          modal.style.display = 'none';
-        }
-      });
-    });
-
-    // File upload visual feedback (if you use this feature)
-    document.querySelectorAll('.file-upload').forEach(upload => {
-      upload.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        upload.style.borderColor = '#4f46e5';
-      });
-      upload.addEventListener('dragleave', () => {
-        upload.style.borderColor = '#ccc';
-      });
-      upload.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          upload.textContent = `📄 ${file.name}`;
-        }
-      });
-    });
-
-    // Mock upgrade link behavior
-    document.querySelector('.upgrade-banner a').addEventListener('click', function(e) {
-      e.preventDefault();
-      alert("In full version: Opens upgrade modal with monthly ($5) and annual ($48) options.\n\n$1 from each plan supports Edhi Foundation and TCF.");
-    });
-
-
-    // --- REMOVED CODE ---
-    // The following sections were removed because they were referencing
-    // HTML elements that do not exist in the file, causing the script to crash.
-    
-    /*
-    // REMOVED: Unused function for exporting a form that doesn't exist
-    function exportFormToPDF(formId) { ... }
-
-    // REMOVED: Handler for a ".sponsor-form" that doesn't exist
-    document.querySelectorAll('.sponsor-form').forEach(form => { ... });
-
-    // REMOVED: Handler for an element with id="start-day" that doesn't exist
-    document.getElementById('start-day').addEventListener('change', function() { ... });
-    */
-
-  </script>
+            App.init();
+            // Bind the context for all methods in the App object
+            for (const key in App) {
+                if (typeof App[key] === 'function') {
+                    App[key] = App[key].bind(App);
+                }
+            }
+        });
+    </script>
 </body>
 </html>
